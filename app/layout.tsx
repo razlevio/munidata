@@ -6,6 +6,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ProgressBarProvider } from "@/components/providers/progress-bar-provider";
 import { ReactQueryProvider } from "@/components/providers/react-query-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { DirectionProvider } from "@/components/ui/direction";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { appConfig } from "@/config/app";
@@ -28,7 +29,7 @@ export default function RootLayout({
     <html
       className="no-scrollbar overscroll-none"
       dir="rtl"
-      lang="en"
+      lang="he"
       suppressHydrationWarning
     >
       <body
@@ -46,7 +47,9 @@ export default function RootLayout({
             <NuqsAdapter>
               <ProgressBarProvider>
                 <ReactQueryProvider>
-                  <main>{children}</main>
+                  <DirectionProvider dir={"rtl"} direction="rtl">
+                    {children}
+                  </DirectionProvider>
                 </ReactQueryProvider>
               </ProgressBarProvider>
             </NuqsAdapter>
