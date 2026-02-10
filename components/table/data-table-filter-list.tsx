@@ -125,7 +125,9 @@ export function DataTableFilterList<TData>({
   const onFilterAdd = React.useCallback(() => {
     const column = columns[0];
 
-    if (!column) return;
+    if (!column) {
+      return;
+    }
 
     debouncedSetFilters([
       ...filters,
@@ -355,7 +357,9 @@ function DataTableFilterItem<TData>({
   const [showValueSelector, setShowValueSelector] = React.useState(false);
 
   const column = columns.find((column) => column.id === filter.id);
-  if (!column) return null;
+  if (!column) {
+    return null;
+  }
 
   const joinOperatorListboxId = `${filterItemId}-join-operator-listbox`;
   const fieldListboxId = `${filterItemId}-field-listbox`;
@@ -640,7 +644,9 @@ function onFilterInputRender<TData>({
     }
 
     case "boolean": {
-      if (Array.isArray(filter.value)) return null;
+      if (Array.isArray(filter.value)) {
+        return null;
+      }
 
       const inputListboxId = `${inputId}-listbox`;
 

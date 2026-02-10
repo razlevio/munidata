@@ -29,17 +29,23 @@ export function DataTableRangeFilter<TData>({
 
   const [min, max] = React.useMemo(() => {
     const range = column.columnDef.meta?.range;
-    if (range) return range;
+    if (range) {
+      return range;
+    }
 
     const values = column.getFacetedMinMaxValues();
-    if (!values) return [0, 100];
+    if (!values) {
+      return [0, 100];
+    }
 
     return [values[0], values[1]];
   }, [column]);
 
   const formatValue = React.useCallback(
     (value: string | number | undefined) => {
-      if (value === undefined || value === "") return "";
+      if (value === undefined || value === "") {
+        return "";
+      }
       const numValue = Number(value);
       return Number.isNaN(numValue)
         ? ""
@@ -51,7 +57,9 @@ export function DataTableRangeFilter<TData>({
   );
 
   const value = React.useMemo(() => {
-    if (Array.isArray(filter.value)) return filter.value.map(formatValue);
+    if (Array.isArray(filter.value)) {
+      return filter.value.map(formatValue);
+    }
     return [formatValue(filter.value), ""];
   }, [filter.value, formatValue]);
 

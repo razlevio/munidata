@@ -40,7 +40,9 @@ export function FeatureFlagsProvider({ children }: FeatureFlagsProviderProps) {
     "filterFlag",
     {
       parse: (value) => {
-        if (!value) return null;
+        if (!value) {
+          return null;
+        }
         const validValues = flagConfig.featureFlags.map((flag) => flag.value);
         return validValues.includes(value as FilterFlag)
           ? (value as FilterFlag)

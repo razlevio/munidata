@@ -28,7 +28,9 @@ export const getSortingStateParser = <TData>(
         const parsed = JSON.parse(value);
         const result = z.array(sortingItemSchema).safeParse(parsed);
 
-        if (!result.success) return null;
+        if (!result.success) {
+          return null;
+        }
 
         if (validKeys && result.data.some((item) => !validKeys.has(item.id))) {
           return null;
@@ -74,7 +76,9 @@ export const getFiltersStateParser = <TData>(
         const parsed = JSON.parse(value);
         const result = z.array(filterItemSchema).safeParse(parsed);
 
-        if (!result.success) return null;
+        if (!result.success) {
+          return null;
+        }
 
         if (validKeys && result.data.some((item) => !validKeys.has(item.id))) {
           return null;

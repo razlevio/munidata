@@ -49,7 +49,9 @@ function DataTableActionBar<TData>({
   const container =
     containerProp ?? (mounted ? globalThis.document?.body : null);
 
-  if (!container) return null;
+  if (!container) {
+    return null;
+  }
 
   const visible =
     visibleProp ?? table.getFilteredSelectedRowModel().rows.length > 0;
@@ -110,7 +112,9 @@ function DataTableActionBarAction({
     </Button>
   );
 
-  if (!tooltip) return trigger;
+  if (!tooltip) {
+    return trigger;
+  }
 
   return (
     <Tooltip>

@@ -68,7 +68,9 @@ export function DataTableSortList<TData>({
     const availableColumns: { id: string; label: string }[] = [];
 
     for (const column of table.getAllColumns()) {
-      if (!column.getCanSort()) continue;
+      if (!column.getCanSort()) {
+        continue;
+      }
 
       const label = column.columnDef.meta?.label ?? column.id;
       labels.set(column.id, label);
@@ -86,7 +88,9 @@ export function DataTableSortList<TData>({
 
   const onSortAdd = React.useCallback(() => {
     const firstColumn = columns[0];
-    if (!firstColumn) return;
+    if (!firstColumn) {
+      return;
+    }
 
     onSortingChange((prevSorting) => [
       ...prevSorting,
@@ -97,7 +101,9 @@ export function DataTableSortList<TData>({
   const onSortUpdate = React.useCallback(
     (sortId: string, updates: Partial<ColumnSort>) => {
       onSortingChange((prevSorting) => {
-        if (!prevSorting) return prevSorting;
+        if (!prevSorting) {
+          return prevSorting;
+        }
         return prevSorting.map((sort) =>
           sort.id === sortId ? { ...sort, ...updates } : sort
         );

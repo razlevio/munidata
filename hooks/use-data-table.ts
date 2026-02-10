@@ -167,13 +167,17 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   );
 
   const filterableColumns = React.useMemo(() => {
-    if (enableAdvancedFilter) return [];
+    if (enableAdvancedFilter) {
+      return [];
+    }
 
     return columns.filter((column) => column.enableColumnFilter);
   }, [columns, enableAdvancedFilter]);
 
   const filterParsers = React.useMemo(() => {
-    if (enableAdvancedFilter) return {};
+    if (enableAdvancedFilter) {
+      return {};
+    }
 
     return filterableColumns.reduce<
       Record<string, Parser<string> | Parser<string[]>>
@@ -201,7 +205,9 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   );
 
   const initialColumnFilters: ColumnFiltersState = React.useMemo(() => {
-    if (enableAdvancedFilter) return [];
+    if (enableAdvancedFilter) {
+      return [];
+    }
 
     return Object.entries(filterValues).reduce<ColumnFiltersState>(
       (filters, [key, value]) => {
@@ -228,7 +234,9 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
 
   const onColumnFiltersChange = React.useCallback(
     (updaterOrValue: Updater<ColumnFiltersState>) => {
-      if (enableAdvancedFilter) return;
+      if (enableAdvancedFilter) {
+        return;
+      }
 
       setColumnFilters((prev) => {
         const next =
