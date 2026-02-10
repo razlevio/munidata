@@ -11,7 +11,8 @@
     "fix": "ultracite fix",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:push": "prisma db push"
+    "db:push": "prisma db push",
+    "postinsall": "prisma generate"
   },
   "dependencies": {
     "@bprogress/next": "^3.2.12",
