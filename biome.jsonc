@@ -12,6 +12,9 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "performance": {
+        "noNamespaceImport": "off"
+      },
       "a11y": {
         "noSvgWithoutTitle": "off",
         "useKeyWithClickEvents": "off",
