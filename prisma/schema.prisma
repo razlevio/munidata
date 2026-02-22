@@ -3,85 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
-}
-
-enum StatisticsType {
-  DASHBOARD
-  MUNICIPALITIES
-  CONTACTS
-  INITIATIVES
-  INTERACTIONS
-  UNIT_TEAMS
-  USERS
-}
-
-enum FeedbackType {
-  BUG
-  FEATURE_REQUEST
-  IMPROVEMENT
-  GENERAL
-}
-
-enum InitiativeStatus {
-  PLANNED
-  ACTIVE
-  COMPLETED
-  CANCELLED
-  PAUSED
-  PILOT
-  INTEGRATION_AND_TESTING
-  DEVELOPMENT
-}
-
-// INDA representatives who can access the system
-model User {
-  id                        String                       @id @default(uuid())
-  email                     String                       @unique
-  username                  String                       @unique
-  first_name                String?
-  last_name                 String?
-  phone                     String?
-  avatar_url                String?
-  role                      String?
-  active                    Boolean                      @default(true)
-  last_seen_announcement_id Int? // Track the last announcement the user has seen
-  teams                     UserTeam[] // Teams the user belongs to
-  initiatives               UserInitiatives[] // Initiatives the user is engaging with
-  interactions              InteractionUsers[] // Many-to-many relationship
-  feedback                  Feedback[] // User feedback submissions
-  announcement_views        UserAnnouncementView[] // Track which announcements user has seen
-  municipality_assignments  UserMunicipalityAssignment[] // Municipalities assigned to this user
-  cluster_assignments       UserClusterAssignment[] // Clusters assigned to this user
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@index([first_name, last_name])
-  @@index([role])
-  @@index([created_at])
-  @@index([username])
-  @@index([last_seen_announcement_id])
-  @@map("users")
-}
-
-// Organizational teams within INDA
-model Team {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique
-  description String?
-
-  members     UserTeam[] // Team members (Users)
-  initiatives Initiative[] // Initiatives owned by this team
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@index([name])
-  @@index([created_at])
-  @@map("teams")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // Clusters - Collections of municipalities with shared characteristics
@@ -92,13 +15,7 @@ model Cluster {
   district    String? // Primary district for this cluster
 
   // Relationships
-  municipalities          Municipality[]          @relation("ClusterMunicipalities") // Child municipalities
-  contacts                Contact[] // Direct cluster contacts
-  initiatives             ClusterInitiatives[] // Initiatives assigned to this cluster
-  interactions            ClusterInteractions[] // Interactions with this cluster
-  core_systems            ClusterCoreSystem[] // Core systems for this cluster
-  third_party_initiatives ClusterThirdParty[] // Third-party initiatives for this cluster
-  user_assignments        UserClusterAssignment[] // Users assigned to this cluster
+  municipalities Municipality[] @relation("ClusterMunicipalities") // Child municipalities
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
@@ -113,7 +30,7 @@ model Cluster {
 model Municipality {
   id                          Int      @id
   name                        String   @unique @db.VarChar(255)
-  code                        String? // סמל רשות
+  code                        String? // סמל הרשות
   district                    String? // מחוז MUNIS_DISTRICTS = ["אזור יהודה והשומרון", "הדרום", "המרכז", "הצפון", "חיפה", "ירושלים", "תל אביב"];
   classification              String? // מעמד מוניציפלי MUNIS_CLASSIFICATIONS = ["מועצה אזורית", "עירייה", "מועצה מקומית"];
   year_getting_classification Int? // שנת קבלת מעמד מוניציפלי
@@ -124,14 +41,13 @@ model Municipality {
   northern_confrontation_line Boolean? // יישובי קו העימות בצפון
   geographic_periphery        Int? // פריפריה גיאוגרפית (1-10)
   social_periphery            Boolean? // פריפריה חברתית
-  literacy_100_eligibility    Boolean? // זכאות ל100 באוריינות
 
   // --------------------------------------------------
   // Socio-economic
   // --------------------------------------------------
   socio_eco_cluster Int? // אשכול (מ-1 עד 10, 1 הנמוך ביותר)
-  // socio_eco_index   Float? // ערך מדד
-  // socio_eco_rank    Int? // דירוג (מ-1 עד 255, 1 הנמוך ביותר)
+  socio_eco_index   Float? // ערך מדד
+  socio_eco_rank    Int? // דירוג (מ-1 עד 255, 1 הנמוך ביותר)
 
   // --------------------------------------------------
   // Population & demographics
@@ -139,48 +55,40 @@ model Municipality {
   total_population       Int? // סה"כ אוכלוסייה בסוף השנה
   population_last_update DateTime? // תאריך עדכון אוכלוסייה
   population_source      String? // המקור ממנו הגיע המידע על האוכלוסייה למס או רשות האוכלוסין וכו
-  // population_density  Float? // צפיפות אוכלוסייה לקמ''ר ביישובים שמנו 5,000 תושבים ויותר
-  // male_population     Int? // סה"כ גברים בסוף השנה
-  // female_population   Int? // סה"כ נשים בסוף השנה
-  // natural_increase    Float? // ריבוי טבעי סה"כ
-  // percent_growth_rate Float? // אחוז גידול האוכלוסייה לעומת השנה הקודמת
-  // immigration_balance Int? // מאזן הגירה ביישוב סה"כ
+  population_density     Float? // צפיפות אוכלוסייה לקמ''ר ביישובים שמנו 5,000 תושבים ויותר
+  male_population        Int? // סה"כ גברים בסוף השנה
+  female_population      Int? // סה"כ נשים בסוף השנה
+  natural_increase       Float? // ריבוי טבעי סה"כ
+  percent_growth_rate    Float? // אחוז גידול האוכלוסייה לעומת השנה הקודמת
+  immigration_balance    Int? // מאזן הגירה ביישוב סה"כ
 
   // --------------------------------------------------
   // Income
   // --------------------------------------------------
-  // total_number_of_income_earners Int? // מספר בעלי הכנסה
-  // avg_income_per_income_earner   Float? // שכר ממוצע לבעל הכנסה
+  total_number_of_income_earners Int? // מספר בעלי הכנסה
+  avg_income_per_income_earner   Float? // שכר ממוצע לבעל הכנסה
 
   // --------------------------------------------------
   // Education
   // --------------------------------------------------
-  // total_kindergartens Int? // סה"כ גנים
-  // total_schools       Int? // סה"כ בתי ספר
-  // total_classes       Int? // סה״כ כיתות
-  // total_students      Int? // סה"כ תלמידים
+  total_kindergartens Int? // סה"כ גנים
+  total_schools       Int? // סה"כ בתי ספר
+  total_classes       Int? // סה״כ כיתות
+  total_students      Int? // סה"כ תלמידים
 
   // --------------------------------------------------
   // Martial Status
   // --------------------------------------------------
-  // percentage_singels  Int? // רווקים
-  // percentage_married  Int? // נשואים
-  // percentage_divorced Int? // גרושים
-  // percentage_widowed  Int? // אלמנים
+  percentage_singels  Int? // רווקים
+  percentage_married  Int? // נשואים
+  percentage_divorced Int? // גרושים
+  percentage_widowed  Int? // אלמנים
 
   // --------------------------------------------------
   // Infrastructure & Transportation
   // --------------------------------------------------
-  // total_vehicles      Int? // כלי רכב מנועיים סה"כ
-  // total_car_accidents Int? // תאונות דרכים עם נפגעים (סה"כ)
-
-  // Relationships
-  initiatives             MunicipalityInitiatives[]
-  contacts                Contact[] // Direct municipality contacts
-  interactions            Interaction[] // Interactions with INDA
-  core_systems            MunicipalityCoreSystem[] // Core systems and their suppliers
-  third_party_initiatives MunicipalityThirdParty[] // Third-party initiatives
-  user_assignments        UserMunicipalityAssignment[] // Users assigned to this municipality
+  total_vehicles      Int? // כלי רכב מנועיים סה"כ
+  total_car_accidents Int? // תאונות דרכים עם נפגעים (סה"כ)
 
   // Reference to parent cluster (many-to-one relationship)
   parent_cluster Cluster? @relation("ClusterMunicipalities", fields: [parent_cluster_id], references: [id], onDelete: SetNull)
@@ -196,588 +104,12 @@ model Municipality {
   @@index([parent_cluster_id]) // For filtering by cluster
   @@index([total_population]) // For filtering and sorting
   @@index([socio_eco_cluster]) // For filtering and sorting
-  // @@index([socio_eco_index]) // For filtering
-  // @@index([socio_eco_rank]) // For filtering
+  @@index([socio_eco_index]) // For filtering
+  @@index([socio_eco_rank]) // For filtering
   @@index([geographic_periphery]) // For filtering
   @@index([social_periphery]) // For filtering
   @@index([golan_heights_settlement]) // For filtering
   @@index([northern_confrontation_line]) // For filtering
-  // @@index([acceleration_assistance]) // For filtering
-  @@index([literacy_100_eligibility]) // For filtering
   @@index([created_at]) // For filtering and sorting
   @@map("municipalities")
-}
-
-// Contact persons from municipalities with their details
-// Contacts can be assigned to a municipality, a cluster, or both simultaneously
-model Contact {
-  id               Int      @id @default(autoincrement())
-  name             String
-  phones           String[]
-  emails           String[]
-  primary_role     String
-  additional_roles String[]
-  avatar_url       String?
-  primary_contact  Boolean? @default(false)
-
-  // Dual assignment: Can belong to municipality AND/OR cluster
-  municipality_id Int?          @map("municipality_id") // Direct municipality assignment (optional)
-  municipality    Municipality? @relation(fields: [municipality_id], references: [id], onDelete: Cascade)
-
-  cluster_id Int?     @map("cluster_id") // Direct cluster assignment (optional)
-  cluster    Cluster? @relation(fields: [cluster_id], references: [id], onDelete: Cascade)
-
-  past_roles          String[]
-  past_municipalities Int[]
-
-  source_list  String?
-  interactions InteractionContacts[] // Many-to-many relationship
-  initiatives  ContactInitiatives[] // Many-to-many relationship with initiatives
-
-  created_at       DateTime  @default(now())
-  updated_at       DateTime  @updatedAt
-  last_verified_at DateTime?
-
-  @@index([municipality_id])
-  @@index([cluster_id])
-  @@index([name]) // Index for the combined name field
-  @@index([primary_role])
-  @@index([last_verified_at])
-  @@index([created_at])
-  @@map("contacts")
-}
-
-// Initiatives offered by INDA to municipalities
-model Initiative {
-  id                   Int              @id @default(autoincrement())
-  name                 String
-  description          String?
-  status               InitiativeStatus @default(ACTIVE)
-  is_parent_initiative Boolean?         @default(false)
-  start_date           DateTime?
-  end_date             DateTime? // You can make it NULL for ongoing intiatives with no end date
-
-  // Initiative-specific data stored as JSON
-  data Json? // Storing flexible initiative data
-
-  // Team ownership - each initiative is owned by a team
-  team_id Int?
-  team    Team? @relation(fields: [team_id], references: [id], onDelete: SetNull)
-
-  // Relationships
-  users                    UserInitiatives[] // Many-to-many relationship with users
-  municipalities           MunicipalityInitiatives[] // Many-to-many with municipalities
-  clusters                 ClusterInitiatives[] // Many-to-many with clusters
-  interactions             InteractionInitiatives[] // Many-to-many relationship
-  contacts                 ContactInitiatives[] // Many-to-many relationship with contacts
-  municipality_assignments UserMunicipalityAssignment[] // User assignments for this initiative
-  cluster_assignments      UserClusterAssignment[] // User assignments for clusters in this initiative
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@index([status])
-  @@index([name])
-  @@index([description])
-  @@index([start_date])
-  @@index([end_date])
-  @@index([created_at])
-  @@index([team_id])
-  @@map("initiatives")
-}
-
-// Records of interactions between the INDA representatives and municipalities
-model Interaction {
-  id         Int      @id @default(autoincrement())
-  date       DateTime
-  type       String // פגישה זום הדרכה
-  details    String?
-  next_steps String[] @default([]) // Array of next steps/additional indicators
-
-  // Each interaction can be associated with a municipality OR a cluster
-  municipality_id Int?
-  municipality    Municipality? @relation(fields: [municipality_id], references: [id], onDelete: SetNull)
-
-  // Many-to-many relationships
-  users       InteractionUsers[]
-  contacts    InteractionContacts[]
-  initiatives InteractionInitiatives[]
-  clusters    ClusterInteractions[] // Interactions can also be with clusters
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@index([date])
-  @@index([type])
-  @@index([municipality_id])
-  @@index([created_at])
-  @@map("interactions")
-}
-
-// Statistics for various aspects of the system
-model Statistics {
-  id        Int            @id @default(autoincrement())
-  type      StatisticsType @unique
-  data      Json
-  updatedAt DateTime       @updatedAt
-
-  @@map("statistics")
-}
-
-// User feedback for bugs, feature requests, and improvements
-model Feedback {
-  id          Int          @id @default(autoincrement())
-  type        FeedbackType
-  title       String
-  description String
-  user_id     String?
-  user        User?        @relation(fields: [user_id], references: [id], onDelete: SetNull)
-
-  // Additional context
-  page_url   String? // URL where feedback was submitted
-  user_agent String? // Browser/device info
-  status     String  @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED, CLOSED
-  priority   String  @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@index([type])
-  @@index([status])
-  @@index([priority])
-  @@index([user_id])
-  @@index([created_at])
-  @@map("feedback")
-}
-
-// Junction table connecting users to teams with role information
-model UserTeam {
-  user_id   String
-  team_id   Int
-  joined_at DateTime @default(now())
-
-  // Relations
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  team Team @relation(fields: [team_id], references: [id], onDelete: Cascade)
-
-  @@id([user_id, team_id])
-  @@index([user_id])
-  @@index([team_id])
-  @@index([joined_at])
-  @@map("user_teams")
-}
-
-// Junction table connecting users to initiatives with engagement type information
-model UserInitiatives {
-  user_id         String
-  initiative_id   Int
-  engagement_type String // e.g., "initiative_manager", "initiative_maintainer", etc.
-  joined_at       DateTime @default(now())
-
-  // Relations
-  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  initiative Initiative @relation(fields: [initiative_id], references: [id], onDelete: Cascade)
-
-  @@id([user_id, initiative_id])
-  @@index([initiative_id]) // Helps filter users by initiative
-  @@index([user_id]) // Helps filter initiatives by user
-  @@index([engagement_type]) // Helps filter by role type
-  @@index([joined_at]) // Helps with time-based queries
-  @@map("user_initiatives")
-}
-
-// Junction table connecting municipalities to initiatives
-model MunicipalityInitiatives {
-  municipality_id        Int
-  initiative_id          Int
-  supplier_id            Int?
-  cohorts                String[]     @default([]) // e.g., ["2025", "2026", "2027"]
-  year_of_implementation Int?
-  start_date             DateTime?
-  end_date               DateTime?
-  municipality           Municipality @relation(fields: [municipality_id], references: [id], onDelete: Cascade)
-  initiative             Initiative   @relation(fields: [initiative_id], references: [id], onDelete: Cascade)
-  supplier               Supplier?    @relation(fields: [supplier_id], references: [id], onDelete: SetNull)
-  status                 String       @default("COMPLETED")
-  notes                  String?
-
-  @@id([municipality_id, initiative_id])
-  @@index([initiative_id]) // Existing: Helps filter initiatives by municipality
-  @@index([municipality_id]) // Added: Helps filter municipalities by initiative
-  @@index([status]) // Added: Helps filter by status
-  @@map("municipality_initiatives")
-}
-
-// Junction table connecting contacts to initiatives with role information
-model ContactInitiatives {
-  contact_id                Int
-  initiative_id             Int
-  contact                   Contact    @relation(fields: [contact_id], references: [id], onDelete: Cascade)
-  initiative                Initiative @relation(fields: [initiative_id], references: [id], onDelete: Cascade)
-  is_primary_representative Boolean    @default(false) // Indicates if contact is primary representative
-  cohort                    String? // e.g., "2025", "2026", "2027"
-  notes                     String? // Additional notes about the contact's role in the initiative
-
-  @@id([contact_id, initiative_id])
-  @@index([initiative_id])
-  @@index([contact_id])
-  @@index([is_primary_representative])
-  @@map("contact_initiatives")
-}
-
-// Junction table connecting interactions to users
-model InteractionUsers {
-  interaction_id Int
-  user_id        String
-  interaction    Interaction @relation(fields: [interaction_id], references: [id], onDelete: Cascade)
-  user           User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@id([interaction_id, user_id])
-  @@index([user_id])
-  @@map("interaction_users")
-}
-
-// Junction table connecting interactions to contacts
-model InteractionContacts {
-  interaction_id Int
-  contact_id     Int
-  interaction    Interaction @relation(fields: [interaction_id], references: [id], onDelete: Cascade)
-  contact        Contact     @relation(fields: [contact_id], references: [id], onDelete: Cascade)
-
-  @@id([interaction_id, contact_id])
-  @@index([contact_id])
-  @@map("interaction_contacts")
-}
-
-// Junction table connecting interactions to initiatives
-model InteractionInitiatives {
-  interaction_id Int
-  initiative_id  Int
-  interaction    Interaction @relation(fields: [interaction_id], references: [id], onDelete: Cascade)
-  initiative     Initiative  @relation(fields: [initiative_id], references: [id], onDelete: Cascade)
-
-  @@id([interaction_id, initiative_id])
-  @@index([initiative_id])
-  @@map("interaction_initiatives")
-}
-
-// Junction table connecting users to municipalities within specific initiatives
-model UserMunicipalityAssignment {
-  user_id         String
-  municipality_id Int
-  initiative_id   Int
-  assigned_at     DateTime @default(now())
-  notes           String?
-
-  // Relations
-  user         User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  municipality Municipality @relation(fields: [municipality_id], references: [id], onDelete: Cascade)
-  initiative   Initiative   @relation(fields: [initiative_id], references: [id], onDelete: Cascade)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@id([user_id, municipality_id, initiative_id])
-  @@index([user_id])
-  @@index([municipality_id])
-  @@index([initiative_id])
-  @@index([assigned_at])
-  @@map("user_municipality_assignments")
-}
-
-// Feature announcements to show users about new features
-model FeatureAnnouncement {
-  id           Int      @id @default(autoincrement())
-  title        String
-  content      String // Markdown content for the announcement
-  version      String? // Optional version number
-  is_active    Boolean  @default(true)
-  priority     Int      @default(0) // Higher numbers = higher priority
-  target_roles String[] @default([]) // Empty array means all users, otherwise specific roles
-
-  // Relationships
-  user_views UserAnnouncementView[]
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@index([is_active])
-  @@index([priority])
-  @@index([created_at])
-  @@map("feature_announcements")
-}
-
-// Junction table tracking which users have seen which announcements
-model UserAnnouncementView {
-  user_id         String
-  announcement_id Int
-  viewed_at       DateTime @default(now())
-
-  // Relations
-  user         User                @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  announcement FeatureAnnouncement @relation(fields: [announcement_id], references: [id], onDelete: Cascade)
-
-  @@id([user_id, announcement_id])
-  @@index([user_id])
-  @@index([announcement_id])
-  @@index([viewed_at])
-  @@map("user_announcement_views")
-}
-
-// Core systems that all municipalities should have (e.g., WEBSITE, ERP, BILLING_SYSTEM)
-model CoreSystem {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique // e.g., "WEBSITE", "ERP", "CRM", "BILLING_SYSTEM"
-  description String?
-  is_required Boolean @default(false) // Whether this core system is mandatory for all municipalities
-
-  // Relationships
-  municipality_systems MunicipalityCoreSystem[] // Track which municipalities use which core-system with which supplier
-  cluster_systems      ClusterCoreSystem[] // Track which clusters use which core-system with which supplier
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@index([name])
-  @@index([is_required])
-  @@index([created_at])
-  @@map("core_systems")
-}
-
-// Suppliers that can provide various core systems
-model Supplier {
-  id           Int     @id @default(autoincrement())
-  name         String  @unique // e.g., "A.S. Bina LTD"
-  description  String?
-  contact_info Json? // Store phone, email, website, address as JSON
-
-  // Relationships
-  municipality_systems       MunicipalityCoreSystem[] // Track which municipalities use this supplier
-  municipality_initiatives   MunicipalityInitiatives[] // Track which municipalities use this supplier for which initiatives
-  municipality_third_parties MunicipalityThirdParty[] // Track which municipalities use this supplier for which third-party initiatives
-  cluster_systems            ClusterCoreSystem[] // Track which clusters use this supplier
-  cluster_initiatives        ClusterInitiatives[] // Track which clusters use this supplier for which initiatives
-  cluster_third_parties      ClusterThirdParty[] // Track which clusters use this supplier for which third-party initiatives
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@index([name])
-  @@index([created_at])
-  @@map("suppliers")
-}
-
-// Track which supplier each municipality actually uses for each core system
-model MunicipalityCoreSystem {
-  municipality_id Int
-  core_system_id  Int
-  supplier_id     Int? // Can be null if municipality doesn't have this system implemented yet
-
-  implementation_date DateTime? // When they started using this supplier for this system
-  notes               String? // Additional notes about implementation, issues, etc.
-
-  municipality Municipality @relation(fields: [municipality_id], references: [id], onDelete: Cascade)
-  core_system  CoreSystem   @relation(fields: [core_system_id], references: [id], onDelete: Cascade)
-  supplier     Supplier?    @relation(fields: [supplier_id], references: [id], onDelete: SetNull)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@id([municipality_id, core_system_id])
-  @@index([municipality_id])
-  @@index([core_system_id])
-  @@index([supplier_id])
-  @@index([created_at])
-  @@map("municipality_core_systems")
-}
-
-// Third-party initiatives that municipalities can use
-model ThirdPartyInitiative {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique // e.g., "WEBSITE", "ERP", "CRM", "BILLING_SYSTEM"
-  description String?
-  is_required Boolean @default(false) // Whether this core system is mandatory for all municipalities
-
-  // Relationships
-  municipality_third_parties MunicipalityThirdParty[] // Track which municipalities use which entities for this initiative
-  cluster_third_parties      ClusterThirdParty[] // Track which clusters use which entities for this initiative
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@index([name])
-  @@index([is_required])
-  @@index([created_at])
-  @@map("third_party_initiatives")
-}
-
-// Third-party entities that municipalities can use for third-party initiatives (like different OFFICES, HAZIRA etc)
-model ThirdPartyEntity {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique // e.g., "Government Office", "Ministry of X"
-  description String?
-  entity_info Json? // phone, email, website, address as JSON
-
-  // Relationships
-  municipality_third_parties MunicipalityThirdParty[] // Track which municipalities use this entity
-  cluster_third_parties      ClusterThirdParty[] // Track which clusters use this entity
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@index([name])
-  @@index([created_at])
-  @@map("third_party_entities")
-}
-
-// Track which municipality uses which entity for which initiative
-model MunicipalityThirdParty {
-  municipality_id           Int
-  third_party_initiative_id Int
-  third_party_entity_id     Int? // Can be null if municipality doesn't have this initiative implemented yet
-  supplier_id               Int? // Supplier for this initiative
-
-  implementation_date    DateTime? // When they started working with this entity for this initiative
-  notes                  String? // Additional notes about implementation, issues, etc.
-  cohorts                String[]  @default([]) // e.g., ["2025", "2026", "2027"]
-  year_of_implementation Int?
-  start_date             DateTime?
-  end_date               DateTime?
-  status                 String    @default("COMPLETED")
-
-  municipality           Municipality         @relation(fields: [municipality_id], references: [id], onDelete: Cascade)
-  third_party_initiative ThirdPartyInitiative @relation(fields: [third_party_initiative_id], references: [id], onDelete: Cascade)
-  third_party_entity     ThirdPartyEntity?    @relation(fields: [third_party_entity_id], references: [id], onDelete: SetNull)
-  supplier               Supplier?            @relation(fields: [supplier_id], references: [id], onDelete: SetNull)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@id([municipality_id, third_party_initiative_id])
-  @@index([municipality_id])
-  @@index([third_party_initiative_id])
-  @@index([third_party_entity_id])
-  @@index([supplier_id])
-  @@index([status])
-  @@index([created_at])
-  @@map("municipality_third_parties")
-}
-
-// Junction table connecting clusters to initiatives
-model ClusterInitiatives {
-  cluster_id             Int
-  initiative_id          Int
-  supplier_id            Int?
-  cohorts                String[]  @default([]) // e.g., ["2025", "2026", "2027"]
-  year_of_implementation Int?
-  start_date             DateTime?
-  end_date               DateTime?
-  status                 String    @default("COMPLETED")
-  notes                  String?
-
-  cluster    Cluster    @relation(fields: [cluster_id], references: [id], onDelete: Cascade)
-  initiative Initiative @relation(fields: [initiative_id], references: [id], onDelete: Cascade)
-  supplier   Supplier?  @relation(fields: [supplier_id], references: [id], onDelete: SetNull)
-
-  @@id([cluster_id, initiative_id])
-  @@index([initiative_id])
-  @@index([cluster_id])
-  @@index([supplier_id])
-  @@index([status])
-  @@map("cluster_initiatives")
-}
-
-// Junction table connecting clusters to interactions
-model ClusterInteractions {
-  cluster_id     Int
-  interaction_id Int
-
-  cluster     Cluster     @relation(fields: [cluster_id], references: [id], onDelete: Cascade)
-  interaction Interaction @relation(fields: [interaction_id], references: [id], onDelete: Cascade)
-
-  @@id([cluster_id, interaction_id])
-  @@index([interaction_id])
-  @@index([cluster_id])
-  @@map("cluster_interactions")
-}
-
-// Track which supplier each cluster uses for each core system
-model ClusterCoreSystem {
-  cluster_id     Int
-  core_system_id Int
-  supplier_id    Int? // Can be null if cluster doesn't have this system implemented yet
-
-  implementation_date DateTime? // When they started using this supplier for this system
-  notes               String? // Additional notes about implementation, issues, etc.
-
-  cluster     Cluster    @relation(fields: [cluster_id], references: [id], onDelete: Cascade)
-  core_system CoreSystem @relation(fields: [core_system_id], references: [id], onDelete: Cascade)
-  supplier    Supplier?  @relation(fields: [supplier_id], references: [id], onDelete: SetNull)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@id([cluster_id, core_system_id])
-  @@index([cluster_id])
-  @@index([core_system_id])
-  @@index([supplier_id])
-  @@index([created_at])
-  @@map("cluster_core_systems")
-}
-
-// Track which cluster uses which entity for which third-party initiative
-model ClusterThirdParty {
-  cluster_id                Int
-  third_party_initiative_id Int
-  third_party_entity_id     Int? // Can be null if cluster doesn't have this initiative implemented yet
-  supplier_id               Int? // Supplier for this initiative
-
-  implementation_date    DateTime? // When they started working with this entity for this initiative
-  notes                  String? // Additional notes about implementation, issues, etc.
-  cohorts                String[]  @default([]) // e.g., ["2025", "2026", "2027"]
-  year_of_implementation Int?
-  start_date             DateTime?
-  end_date               DateTime?
-  status                 String    @default("COMPLETED")
-
-  cluster                Cluster              @relation(fields: [cluster_id], references: [id], onDelete: Cascade)
-  third_party_initiative ThirdPartyInitiative @relation(fields: [third_party_initiative_id], references: [id], onDelete: Cascade)
-  third_party_entity     ThirdPartyEntity?    @relation(fields: [third_party_entity_id], references: [id], onDelete: SetNull)
-  supplier               Supplier?            @relation(fields: [supplier_id], references: [id], onDelete: SetNull)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@id([cluster_id, third_party_initiative_id])
-  @@index([cluster_id])
-  @@index([third_party_initiative_id])
-  @@index([third_party_entity_id])
-  @@index([supplier_id])
-  @@index([status])
-  @@index([created_at])
-  @@map("cluster_third_parties")
-}
-
-// Junction table connecting users to clusters within specific initiatives
-model UserClusterAssignment {
-  user_id       String
-  cluster_id    Int
-  initiative_id Int
-  assigned_at   DateTime @default(now())
-  notes         String?
-
-  // Relations
-  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  cluster    Cluster    @relation(fields: [cluster_id], references: [id], onDelete: Cascade)
-  initiative Initiative @relation(fields: [initiative_id], references: [id], onDelete: Cascade)
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@id([user_id, cluster_id, initiative_id])
-  @@index([user_id])
-  @@index([cluster_id])
-  @@index([initiative_id])
-  @@index([assigned_at])
-  @@map("user_cluster_assignments")
 }
