@@ -127,8 +127,7 @@ const headerMapping = {
   "שנת קבלת מעמד מוניציפלי  ": "year_getting_classification",
   'שטח \r\n(קמ"ר)': "area_km",
   'סה"כ  אוכלוסייה בסוף השנה': "total_population",
-  "צפיפות אוכלוסייה לקמ''ר ביישובים שמנו 5,000 תושבים ויותר":
-    "population_density",
+  "צפיפות אוכלוסייה לקמ''ר ביישובים שמנו 5,000 תושבים ויותר": "population_density",
   'סה"כ גברים בסוף השנה': "male_population",
   'סה"כ נשים בסוף השנה': "female_population",
   'ריבוי טבעי\r\nסה"כ': "natural_increase",
@@ -322,8 +321,7 @@ async function main() {
       process.cwd(),
       "prisma",
       "data",
-      "external",
-      "munis-lms-22.xlsx"
+      "munis-23.xlsx"
     );
 
     // Check if file exists

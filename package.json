@@ -12,7 +12,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:import-munis": "tsx prisma/scripts/import-munis.ts"
   },
   "dependencies": {
     "@bprogress/next": "^3.2.12",
